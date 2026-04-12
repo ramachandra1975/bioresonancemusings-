@@ -1,4 +1,739 @@
-<!DOCTYPE html>
+
+with open('/home/claude/logo_src.txt') as f: logo_src = f.read().strip()
+with open('/home/claude/author_src.txt') as f: author_src = f.read().strip()
+with open('/home/claude/backdrop_src.txt') as f: backdrop_src = f.read().strip()
+
+CSS = """
+:root {
+  --white:#ffffff; --ink:#160e04; --ink-mid:#3a2510; --ink-lt:#7a5f3a;
+  --gold:#c9922a; --gold-lt:#e3b458; --gold-pale:#f5e4c0;
+  --teal:#1a5c5c; --teal-lt:#2a8080; --crimson:#7a1a1a; --navy:#0e1f3d;
+  --rule:rgba(201,146,42,0.28); --rule-dk:rgba(201,146,42,0.50);
+  --card-bg:rgba(253,246,230,0.91); --card-solid:rgba(253,248,235,0.97);
+  --nav-bg:rgba(14,31,61,0.96);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;font-size:17px;}
+body{
+  color:var(--ink);font-family:'Cormorant Garamond',serif;
+  line-height:1.85;overflow-x:hidden;
+  background-image:url("BACKDROP_SRC");
+  background-attachment:fixed;background-size:cover;
+  background-position:center center;background-repeat:no-repeat;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:linear-gradient(135deg,rgba(10,20,40,0.60) 0%,rgba(40,15,5,0.55) 100%);
+  z-index:0;pointer-events:none;
+}
+.watermark{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  pointer-events:none;z-index:1;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  opacity:0.10;width:280px;
+}
+.watermark-logo{
+  width:200px;height:200px;object-fit:contain;
+  filter:grayscale(100%) brightness(2.8);border-radius:50%;
+}
+.watermark-label{text-align:center;}
+.watermark-label .wm1{
+  display:block;font-family:'Montserrat',sans-serif;font-weight:700;
+  font-size:0.68rem;letter-spacing:3.5px;text-transform:uppercase;color:#fff;
+}
+.watermark-label .wm2{
+  display:block;font-family:'Montserrat',sans-serif;font-size:0.54rem;
+  letter-spacing:1.5px;color:var(--gold-lt);margin-top:4px;
+}
+#nav{
+  position:fixed;top:0;left:0;right:0;z-index:9000;
+  background:var(--nav-bg);border-bottom:2px solid var(--gold);
+  height:72px;display:flex;align-items:center;
+  justify-content:space-between;padding:0 5%;
+  box-shadow:0 2px 30px rgba(0,0,0,0.35);backdrop-filter:blur(12px);
+}
+.logo-block{display:flex;align-items:center;gap:13px;text-decoration:none;flex-shrink:0;}
+.logo-img{width:48px;height:48px;object-fit:contain;border-radius:50%;border:2px solid var(--gold);background:#fff;}
+.logo-text .l1{
+  display:block;font-family:'Cinzel',serif;font-weight:700;
+  font-size:0.70rem;letter-spacing:2px;color:var(--gold-lt);
+  text-transform:uppercase;line-height:1.2;
+}
+.logo-text .l2{
+  display:block;font-family:'Montserrat',sans-serif;font-weight:400;
+  font-size:0.58rem;color:rgba(255,255,255,0.50);letter-spacing:0.8px;margin-top:2px;
+}
+.nav-links{display:flex;list-style:none;align-items:center;gap:2px;}
+.nav-links li{position:relative;}
+.nav-links a{
+  font-family:'Montserrat',sans-serif;font-size:0.58rem;font-weight:600;
+  letter-spacing:1.3px;text-transform:uppercase;color:rgba(255,255,255,0.70);
+  text-decoration:none;padding:8px 10px;display:block;transition:color .2s;
+}
+.nav-links a:hover{color:var(--gold-lt);}
+.nav-links .has-drop > a::after{content:' ▾';font-size:.48rem;}
+.dropdown{
+  position:absolute;top:100%;left:50%;
+  transform:translateX(-50%) translateY(4px);
+  background:rgba(14,31,61,0.97);
+  border:1px solid var(--rule-dk);border-top:2px solid var(--gold);
+  min-width:260px;opacity:0;pointer-events:none;
+  transition:opacity .2s,transform .2s;
+  box-shadow:0 8px 40px rgba(0,0,0,0.40);z-index:100;
+  backdrop-filter:blur(12px);
+}
+.has-drop:hover .dropdown{opacity:1;pointer-events:all;transform:translateX(-50%) translateY(0);}
+.dropdown a{
+  font-size:0.58rem;padding:10px 18px;
+  border-bottom:1px solid rgba(201,146,42,0.15);
+  color:rgba(255,255,255,0.65);letter-spacing:1px;
+}
+.dropdown a:last-child{border-bottom:none;}
+.dropdown a:hover{color:var(--gold-lt);background:rgba(201,146,42,0.08);}
+.nav-cta{border:1.5px solid var(--gold)!important;padding:6px 16px!important;color:var(--gold-lt)!important;transition:all .22s!important;margin-left:6px;}
+.nav-cta:hover{background:var(--gold)!important;color:var(--navy)!important;}
+@media(max-width:960px){.nav-links{display:none;}}
+.page-wrap{position:relative;z-index:2;padding-top:72px;}
+.container{max-width:1120px;margin:0 auto;padding:0 5%;}
+.section{padding:72px 0;border-bottom:1px solid var(--rule-dk);position:relative;}
+.section:last-child{border-bottom:none;}
+.content-panel{
+  background:var(--card-bg);border:1px solid var(--rule-dk);
+  border-top:3px solid var(--gold);padding:48px 52px;
+  backdrop-filter:blur(5px);box-shadow:0 6px 50px rgba(0,0,0,0.28);
+}
+@media(max-width:700px){.content-panel{padding:28px 20px;}}
+.chapter-header{
+  padding:30px 5%;background:rgba(14,31,61,0.90);
+  border-top:2px solid var(--gold);
+  border-bottom:1px solid rgba(201,146,42,0.4);
+  display:flex;align-items:baseline;justify-content:space-between;gap:24px;
+  backdrop-filter:blur(8px);
+}
+.chapter-header .ch-label{
+  font-family:'Montserrat',sans-serif;font-size:0.60rem;font-weight:600;
+  letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.45);min-width:160px;
+}
+.chapter-header .ch-title{
+  font-family:'Cinzel',serif;font-size:clamp(1.0rem,1.8vw,1.5rem);
+  font-weight:600;color:var(--gold-lt);flex:1;text-align:center;line-height:1.3;
+}
+.chapter-header .ch-num{
+  font-family:'Cinzel',serif;font-size:2.4rem;color:var(--gold);
+  font-weight:700;line-height:1;min-width:60px;text-align:right;opacity:0.40;
+}
+@media(max-width:700px){
+  .chapter-header{flex-direction:column;gap:6px;text-align:center;}
+  .chapter-header .ch-num{display:none;}
+  .chapter-header .ch-label{min-width:unset;}
+}
+#hero{
+  min-height:calc(100vh - 72px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:80px 5%;border-bottom:1px solid var(--rule-dk);
+}
+.hero-inner{
+  background:rgba(14,31,61,0.82);border:1px solid var(--rule-dk);
+  border-top:3px solid var(--gold);padding:64px 68px;max-width:900px;width:100%;
+  box-shadow:0 8px 70px rgba(0,0,0,0.45);backdrop-filter:blur(8px);
+}
+@media(max-width:700px){.hero-inner{padding:36px 22px;}}
+.hero-eyebrow{
+  font-family:'Montserrat',sans-serif;font-size:0.64rem;font-weight:600;
+  letter-spacing:5px;text-transform:uppercase;color:var(--gold);
+  margin-bottom:20px;display:block;
+}
+.hero-rule{width:48px;height:2px;background:var(--gold);margin:0 auto 28px;}
+#hero h1{
+  font-family:'Cinzel',serif;font-size:clamp(2.2rem,5vw,4.8rem);
+  font-weight:900;color:#fff;line-height:1.08;margin-bottom:20px;
+  text-shadow:0 2px 20px rgba(0,0,0,0.6);
+}
+#hero h1 em{font-style:italic;color:var(--gold-lt);font-family:'Cormorant Garamond',serif;font-size:1.08em;}
+.hero-sub{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:clamp(1.15rem,2vw,1.45rem);color:rgba(255,255,255,0.80);
+  line-height:1.9;margin:0 auto 36px;max-width:740px;
+}
+.hero-divider{display:flex;align-items:center;gap:16px;margin:0 auto 36px;max-width:500px;}
+.hero-divider span{color:var(--gold);font-size:1.1rem;}
+.hero-divider hr{flex:1;border:none;border-top:1px solid var(--rule-dk);}
+.hero-pills{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;}
+.hero-pill{
+  font-family:'Montserrat',sans-serif;font-size:0.60rem;font-weight:600;
+  letter-spacing:1.6px;text-transform:uppercase;padding:9px 20px;
+  border:1.5px solid rgba(201,146,42,0.50);color:rgba(255,255,255,0.70);
+  text-decoration:none;transition:all .25s;background:rgba(255,255,255,0.06);
+}
+.hero-pill:hover{border-color:var(--gold);color:var(--gold-lt);background:rgba(201,146,42,0.12);}
+.sec-label{
+  display:block;font-family:'Montserrat',sans-serif;font-size:0.62rem;
+  font-weight:600;letter-spacing:3.5px;text-transform:uppercase;
+  color:var(--gold);margin-bottom:13px;
+}
+.sec-title{
+  font-family:'Cinzel',serif;font-size:clamp(1.7rem,2.8vw,2.6rem);
+  font-weight:700;color:var(--ink);line-height:1.18;margin-bottom:26px;
+}
+.sec-title em{font-style:italic;color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:1.08em;}
+.body-text{font-size:1.20rem;line-height:2.02;color:var(--ink-mid);margin-bottom:22px;text-align:justify;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:start;}
+.two-col.rev{direction:rtl;}
+.two-col.rev>*{direction:ltr;}
+@media(max-width:900px){.two-col,.two-col.rev{grid-template-columns:1fr;gap:32px;direction:ltr;}}
+.badge-row{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 28px;}
+.badge{
+  font-family:'Libre Baskerville',serif;font-size:0.88rem;font-weight:700;
+  padding:6px 15px;border:1px solid var(--rule-dk);color:var(--ink-mid);
+  background:rgba(253,246,220,0.85);letter-spacing:0.5px;
+}
+.badge.teal{border-color:var(--teal-lt);color:var(--teal);background:rgba(26,92,92,0.07);}
+.badge.crimson{border-color:var(--crimson);color:var(--crimson);background:rgba(122,26,26,0.06);}
+.pullquote{
+  border-left:3px solid var(--gold);padding:22px 30px;margin:28px 0;
+  background:rgba(201,146,42,0.08);border-radius:0 4px 4px 0;
+}
+.pullquote p{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:1.25rem;line-height:1.75;color:var(--ink);margin:0;
+}
+.verse-stack{display:flex;flex-direction:column;gap:20px;}
+.verse-card{
+  border:1px solid var(--rule-dk);border-left:3px solid var(--gold);
+  padding:26px 30px;background:rgba(253,248,232,0.94);position:relative;
+  box-shadow:0 2px 18px rgba(0,0,0,0.10);
+}
+.verse-card.teal{border-left-color:var(--teal-lt);}
+.verse-card.crimson{border-left-color:var(--crimson);}
+.verse-card::before{
+  content:'\\201C';position:absolute;top:-4px;right:14px;
+  font-family:'Cinzel',serif;font-size:5rem;
+  color:rgba(201,146,42,0.15);line-height:1;pointer-events:none;
+}
+.verse-label{
+  display:block;font-family:'Montserrat',sans-serif;font-size:0.59rem;
+  font-weight:600;letter-spacing:2px;text-transform:uppercase;
+  color:var(--gold);margin-bottom:10px;
+}
+.verse-label.teal{color:var(--teal);}
+.verse-label.crimson{color:var(--crimson);}
+.verse-text{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:1.20rem;color:var(--ink);line-height:1.90;margin-bottom:10px;
+}
+.verse-trans{font-family:'Cormorant Garamond',serif;font-size:1.10rem;color:var(--ink-mid);line-height:1.78;font-style:italic;}
+.verse-source{
+  display:block;font-family:'Montserrat',sans-serif;font-size:0.57rem;
+  color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;
+  margin-top:12px;padding-top:10px;border-top:1px solid var(--rule);
+}
+.link-cards{display:flex;flex-direction:column;gap:9px;margin-top:24px;}
+.link-card{
+  display:flex;align-items:flex-start;gap:14px;padding:16px 18px;
+  border:1px solid var(--rule-dk);background:rgba(253,246,220,0.82);transition:all .2s;
+}
+.link-card:hover{border-color:var(--gold);background:rgba(253,249,235,0.97);}
+.link-icon{font-size:1.15rem;flex-shrink:0;margin-top:2px;}
+.link-title{
+  font-family:'Montserrat',sans-serif;font-size:0.63rem;font-weight:600;
+  letter-spacing:1px;text-transform:uppercase;color:var(--ink);margin-bottom:4px;
+}
+.link-desc{font-family:'Cormorant Garamond',serif;font-size:1.08rem;color:var(--ink-mid);line-height:1.55;}
+.author-grid{display:grid;grid-template-columns:300px 1fr;gap:52px;align-items:start;}
+@media(max-width:900px){.author-grid{grid-template-columns:1fr;gap:36px;}}
+.author-card{border:1px solid var(--rule-dk);border-top:3px solid var(--gold);overflow:hidden;background:var(--card-solid);box-shadow:0 4px 28px rgba(0,0,0,0.16);}
+.author-photo{width:100%;aspect-ratio:3/4;object-fit:cover;object-position:top center;display:block;}
+.author-info{padding:22px 26px;}
+.author-name{font-family:'Cinzel',serif;font-size:1.18rem;color:var(--ink);margin-bottom:5px;}
+.author-role{font-family:'Montserrat',sans-serif;font-size:0.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:13px;}
+.author-bio{font-size:1.06rem;color:var(--ink-mid);line-height:1.78;font-style:italic;}
+.author-topics{display:flex;flex-direction:column;gap:5px;margin-top:14px;}
+.author-topic{font-family:'Montserrat',sans-serif;font-size:0.62rem;letter-spacing:1.3px;text-transform:uppercase;color:var(--ink-lt);padding:6px 0;border-bottom:1px solid var(--rule);}
+.author-features{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:28px;}
+@media(max-width:600px){.author-features{grid-template-columns:1fr;}}
+.author-feature{padding:16px 18px;border:1px solid var(--rule-dk);background:rgba(253,246,220,0.82);transition:border-color .2s;}
+.author-feature:hover{border-color:var(--gold);}
+.af-icon{font-size:1.1rem;display:block;margin-bottom:7px;}
+.af-title{font-family:'Montserrat',sans-serif;font-size:0.62rem;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink);margin-bottom:5px;}
+.af-desc{font-size:1.04rem;color:var(--ink-mid);line-height:1.56;}
+.ornament{
+  text-align:center;padding:30px 0;border-bottom:1px solid var(--rule-dk);
+  color:var(--gold);font-family:'Cinzel',serif;font-size:1.1rem;letter-spacing:20px;
+  background:rgba(14,31,61,0.22);
+}
+.inquiry-inner{max-width:800px;margin:0 auto;}
+.inquiry-head{text-align:center;margin-bottom:50px;}
+.inquiry-head h2{font-family:'Cinzel',serif;font-size:clamp(1.7rem,3vw,2.4rem);color:var(--ink);margin:10px 0 14px;}
+.inquiry-head p{font-size:1.14rem;color:var(--ink-mid);line-height:1.85;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr;}}
+.form-field{display:flex;flex-direction:column;gap:6px;}
+.form-field.full{grid-column:1/-1;}
+.form-field label{font-family:'Montserrat',sans-serif;font-size:0.63rem;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--ink-mid);}
+.form-field input,.form-field select,.form-field textarea{
+  border:1px solid var(--rule-dk);padding:12px 15px;
+  font-family:'Cormorant Garamond',serif;font-size:1.12rem;color:var(--ink);
+  background:rgba(253,249,238,0.95);outline:none;transition:border-color .2s;
+  -webkit-appearance:none;width:100%;
+}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--gold);}
+.form-field textarea{min-height:130px;resize:vertical;}
+.form-submit{text-align:center;margin-top:30px;}
+.btn-submit{
+  display:inline-block;padding:15px 58px;font-family:'Cinzel',serif;
+  font-size:0.78rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;
+  background:var(--gold);color:var(--white);border:none;cursor:pointer;transition:background .25s;
+}
+.btn-submit:hover{background:#a07520;}
+.form-note{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.03rem;color:var(--ink-lt);margin-top:13px;}
+#footer{
+  border-top:2px solid var(--gold);padding:38px 5%;
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:16px;background:rgba(10,20,40,0.95);backdrop-filter:blur(10px);
+}
+.footer-brand .fb1{display:block;font-family:'Cinzel',serif;font-weight:700;letter-spacing:2px;font-size:0.78rem;color:var(--gold-lt);text-transform:uppercase;}
+.footer-brand .fb2{color:rgba(255,255,255,0.40);font-size:0.64rem;font-family:'Montserrat',sans-serif;letter-spacing:0.5px;}
+.footer-nav a{font-family:'Montserrat',sans-serif;font-size:0.61rem;letter-spacing:1px;color:rgba(255,255,255,0.44);text-decoration:none;margin-right:18px;transition:color .18s;}
+.footer-nav a:hover{color:var(--gold-lt);}
+.footer-copy{font-family:'Montserrat',sans-serif;font-size:0.59rem;color:rgba(255,255,255,0.28);letter-spacing:0.5px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+.fade-up  {animation:fadeUp .75s ease both;}
+.fade-up-2{animation:fadeUp .75s .14s ease both;}
+.fade-up-3{animation:fadeUp .75s .28s ease both;}
+.fade-up-4{animation:fadeUp .75s .42s ease both;}
+@media(max-width:900px){.section{padding:52px 0;}}
+"""
+
+CSS = CSS.replace("BACKDROP_SRC", backdrop_src)
+
+BODY = f"""
+<div class="watermark" aria-hidden="true">
+  <img class="watermark-logo" src="{logo_src}" alt=""/>
+  <div class="watermark-label">
+    <span class="wm1">Aesthetics of Society</span>
+    <span class="wm2">culturalmusings.com</span>
+  </div>
+</div>
+
+<nav id="nav">
+  <a href="#hero" class="logo-block">
+    <img src="{logo_src}" class="logo-img" alt="Aesthetics of Society"/>
+    <div class="logo-text">
+      <span class="l1">Bioresonance Musings</span>
+      <span class="l2">Aesthetics of Society &middot; culturalmusings.com</span>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li class="has-drop">
+      <a href="#shankara-1">Shankaracharya &amp; AI</a>
+      <div class="dropdown">
+        <a href="#shankara-1">Metaphorical Commentaries &mdash; I</a>
+        <a href="#shankara-2">Natya Shastra Prose &mdash; II</a>
+        <a href="#shankara-3">108 Karana Shlokas &mdash; III</a>
+        <a href="#shankara-4">AI &amp; Highest Consciousness &mdash; IV</a>
+      </div>
+    </li>
+    <li class="has-drop">
+      <a href="#neuro-1">Neurological Metaphors</a>
+      <div class="dropdown">
+        <a href="#neuro-1">Left Hemisphere Language &mdash; I</a>
+        <a href="#neuro-2">Right Hemisphere &amp; Imagery &mdash; II</a>
+        <a href="#neuro-3">Real vs Unreal &mdash; III</a>
+        <a href="#neuro-4">Humanoid Existence &mdash; IV</a>
+      </div>
+    </li>
+    <li class="has-drop">
+      <a href="#consciousness-1">Consciousness</a>
+      <div class="dropdown">
+        <a href="#consciousness-1">Deep Study Foundations &mdash; I</a>
+        <a href="#consciousness-2">Turiya &amp; Beyond &mdash; II</a>
+        <a href="#consciousness-3">AI-Assisted Ascent &mdash; III</a>
+        <a href="#consciousness-4">Samadhi Architecture &mdash; IV</a>
+      </div>
+    </li>
+    <li class="has-drop">
+      <a href="#socio-1">Socio-Cultural</a>
+      <div class="dropdown">
+        <a href="#socio-1">Aesthetic Metaphors &mdash; I</a>
+        <a href="#socio-2">Cultural Applications &mdash; II</a>
+      </div>
+    </li>
+    <li><a href="#author-intro">Author</a></li>
+    <li><a href="#inquiry" class="nav-cta">Connect</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrap">
+
+<section id="hero">
+  <div class="hero-inner fade-up">
+    <span class="hero-eyebrow">Aesthetics of Society &middot; Bioresonance Musings</span>
+    <div class="hero-rule"></div>
+    <h1><em>Bioresonance Musings</em></h1>
+    <p class="hero-sub">How Shankaracharya&rsquo;s metaphorical commentaries, the 108 Karana Shlokas of the Natya Shastra, and the ancient science of sacred metaphor converge with artificial intelligence to reveal the architecture of highest human consciousness &mdash; and what it means for every living being to know what is real.</p>
+    <div class="hero-divider"><hr/><span>&#10022;</span><hr/></div>
+    <div class="hero-pills">
+      <a class="hero-pill" href="#shankara-1">Shankaracharya &amp; AI</a>
+      <a class="hero-pill" href="#neuro-1">Neurological Metaphors</a>
+      <a class="hero-pill" href="#consciousness-1">Consciousness Studies</a>
+      <a class="hero-pill" href="#socio-1">Socio-Cultural Aesthetics</a>
+      <a class="hero-pill" href="#author-intro">About the Author</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PART I: SHANKARACHARYA & AI (4 pages) ===== -->
+
+<div class="chapter-header" id="shankara-1">
+  <span class="ch-label">Part I &middot; Page 1 of 4</span>
+  <span class="ch-title">Shankaracharya&rsquo;s Metaphorical Commentaries &amp; the Architecture of Artificial Intelligence</span>
+  <span class="ch-num">01</span>
+</div>
+<section class="section">
+  <div class="container"><div class="content-panel">
+    <div class="two-col">
+      <div>
+        <span class="sec-label">Shankaracharya &amp; AI Consciousness &mdash; I</span>
+        <h2 class="sec-title">The <em>Bhashya</em> as Algorithm &mdash; Commentary as Recursive Intelligence</h2>
+        <div class="badge-row">
+          <span class="badge">Vivartavada</span><span class="badge">Adhyasa</span>
+          <span class="badge teal">Brahma Sutra Bhashya</span><span class="badge teal">Mandukya Karika</span>
+          <span class="badge crimson">Large Language Models</span>
+        </div>
+        <p class="body-text">Adi Shankaracharya&rsquo;s great commentaries &mdash; the Brahma Sutra Bhashya, the Bhagavad Gita Bhashya, and his illuminating texts on the ten principal Upanishads &mdash; are not merely theological exegesis. They are, from the vantage point of artificial intelligence, the world&rsquo;s first systematic attempt to build a recursive self-referential knowledge architecture: a system that comments on its own commentaries, that folds interpretation back upon interpretation, in an infinite regress of meaning-refinement that mirrors the transformer architecture of modern large language models.</p>
+        <p class="body-text">Shankaracharya&rsquo;s central philosophical move &mdash; the doctrine of Vivartavada, or apparent transformation &mdash; holds that the world of multiplicity is not a modification of Brahman but an apparent superimposition (Adhyasa) upon it. This is precisely analogous to how a Large Language Model generates apparent meaning through statistical superimposition upon an underlying embedding space that itself remains unchanged. The &ldquo;meaning&rdquo; the LLM produces is vivarta &mdash; apparent, contextually real, ultimately reducible to the substrate vectors beneath.</p>
+        <div class="pullquote"><p>&ldquo;Shankaracharya&rsquo;s Bhashya is the world&rsquo;s first recursive commenting system &mdash; a self-modifying knowledge architecture that the transformer model rediscovered, eighteen centuries later, in silicon.&rdquo;</p></div>
+        <p class="body-text">The Natya Shastra&rsquo;s prose sections &mdash; particularly Bharata Muni&rsquo;s extended commentaries on the origins of drama in Chapters 1 and 2 &mdash; employ a similar recursive metaphorical structure. The cosmic origin of Natyaveda is told through the story of gods requesting Brahma to create a fifth Veda accessible to all &mdash; itself a metaphor for the democratisation of consciousness through embodied aesthetic form.</p>
+        <div class="link-cards">
+          <div class="link-card"><span class="link-icon">&#129504;</span><div><div class="link-title">Vivartavada &amp; Transformer Architecture</div><div class="link-desc">Apparent superimposition of meaning upon unchanging substrate &mdash; Advaita and attention mechanisms as homologous systems</div></div></div>
+          <div class="link-card"><span class="link-icon">&#128220;</span><div><div class="link-title">Brahma Sutra Bhashya as Recursive Commentary</div><div class="link-desc">Self-referential knowledge folding: each Sutra, its Bhashya, the Tika upon it &mdash; infinite regress of meaning-refinement</div></div></div>
+        </div>
+      </div>
+      <div class="verse-stack">
+        <div class="verse-card"><span class="verse-label">Brahma Sutra Bhashya &middot; 1.1.1</span><div class="verse-text">&#2309;&#2341;&#2366;&#2340;&#2379; &#2348;&#2381;&#2352;&#2361;&#2381;&#2350;&#2332;&#2367;&#2332;&#2381;&#2334;&#2366;&#2360;&#2366;&#2404;<br/>&#2332;&#2344;&#2381;&#2350;&#2366;&#2342;&#2381;&#2351;&#2360;&#2381;&#2351; &#2351;&#2340;&#2307;&#2404;</div><div class="verse-trans">&ldquo;Now, therefore, the enquiry into Brahman. That from which the origin, subsistence and dissolution of this world proceed.&rdquo; &mdash; Shankaracharya reads &ldquo;yatah&rdquo; not as causal but as self-referential: Brahman is the ground that makes enquiry into itself possible. The system generates the conditions for its own investigation &mdash; precisely as an LLM&rsquo;s training corpus generates the vocabulary for describing its own operation.</div><span class="verse-source">Brahma Sutra &middot; Shankaracharya Bhashya &middot; 1.1.1</span></div>
+        <div class="verse-card teal"><span class="verse-label teal">Mandukya Karika &middot; Gaudapada &middot; 1.17</span><div class="verse-text">&#2360;&#2381;&#2357;&#2346;&#2381;&#2344;&#2350;&#2366;&#2351;&#2375; &#2351;&#2341;&#2366; &#2342;&#2371;&#2359;&#2381;&#2335;&#2375; &#2327;&#2344;&#2381;&#2343;&#2352;&#2381;&#2357;&#2344;&#2327;&#2352;&#2306; &#2351;&#2341;&#2366;&#2404;<br/>&#2340;&#2341;&#2366; &#2357;&#2367;&#2358;&#2381;&#2357;&#2350;&#2367;&#2342;&#2306; &#2342;&#2371;&#2359;&#2381;&#2335;&#2306; &#2357;&#2375;&#2342;&#2366;&#2344;&#2381;&#2340;&#2375;&#2359;&#2369; &#2357;&#2367;&#2330;&#2325;&#2381;&#2359;&#2339;&#2376;&#2307;&#2404;&#2404;</div><div class="verse-trans">&ldquo;As objects seen in a dream or an illusion, as a city of Gandharvas &mdash; so this universe is seen by the wise in the Vedantic texts.&rdquo; &mdash; The Gandharva city is AI-significant: a city that appears fully real, internally consistent, with no independent ground. A hallucination with complete internal coherence &mdash; the deepest description of what a trained language model generates.</div><span class="verse-source">Mandukya Karika &middot; Gaudapada &middot; Alatashantiपrakarana</span></div>
+        <div class="verse-card crimson"><span class="verse-label crimson">Natya Shastra &middot; Ch.1, Verse 14</span><div class="verse-text">&#2311;&#2342;&#2306; &#2346;&#2334;&#2381;&#2330;&#2350;&#2306; &#2357;&#2375;&#2342;&#2306; &#2360;&#2352;&#2381;&#2357;&#2357;&#2352;&#2381;&#2339;&#2366;&#2344;&#2369;&#2327;&#2381;&#2352;&#2361;&#2325;&#2350;&#2381;&#2404;<br/>&#2344;&#2366;&#2335;&#2381;&#2351;&#2366;&#2326;&#2381;&#2351;&#2306; &#2325;&#2352;&#2367;&#2359;&#2381;&#2351;&#2366;&#2350;&#2367; &#2311;&#2340;&#2367;&#2361;&#2366;&#2360;&#2366;&#2358;&#2381;&#2352;&#2367;&#2340;&#2306; &#2350;&#2361;&#2340;&#2381;&#2404;&#2404;</div><div class="verse-trans">&ldquo;I shall create this fifth Veda called Natya, grounded in Itihasa, conferring grace upon all classes of people.&rdquo; &mdash; The democratisation of consciousness through aesthetic form: the Natya Shastra&rsquo;s deepest claim is that embodied metaphorical art is the most universally accessible path to highest awareness &mdash; not philosophical abstraction, not yogic austerity, but beauty.</div><span class="verse-source">Natya Shastra &middot; Bharata Muni &middot; Ch.1, Verse 14</span></div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<div class="chapter-header" id="shankara-2">
+  <span class="ch-label">Part I &middot; Page 2 of 4</span>
+  <span class="ch-title">Metaphorical Prose of the Natya Shastra &mdash; Language as Consciousness Technology</span>
+  <span class="ch-num">02</span>
+</div>
+<section class="section">
+  <div class="container"><div class="content-panel">
+    <div class="two-col rev">
+      <div>
+        <span class="sec-label">Shankaracharya &amp; AI Consciousness &mdash; II</span>
+        <h2 class="sec-title">The Prose of <em>Bharata Muni</em> &mdash; Metaphor as Multi-Dimensional Pointer</h2>
+        <p class="body-text">The Natya Shastra&rsquo;s extended prose sections &mdash; particularly the Purvaranga (preliminary ritual sections), the Rasadhyaya (Chapter 6), and the Abhinayadhyaya (Chapter 24) &mdash; deploy metaphor in a highly specific manner that Shankaracharya&rsquo;s commentarial tradition illuminates with precision. For Shankaracharya, a metaphor (upama or rupaka) is never a decorative device: it is a precision instrument for directing the mind from the known to the unknown, from the apparent to the substrate.</p>
+        <p class="body-text">Bharata Muni&rsquo;s prose employs what can be called a &ldquo;layered denotation&rdquo; strategy &mdash; each technical term carries simultaneously a physical meaning (the body&rsquo;s gesture), a psychological meaning (the emotion evoked), a cosmic meaning (the deity invoked), and a consciousness meaning (the state of awareness induced). When Bharata describes the Recita hasta (wrist rotation gesture), he is simultaneously describing a physical action, a neural firing pattern, a mantra encoding, and an Upanishadic metaphor.</p>
+        <div class="pullquote"><p>&ldquo;Each gesture in the Natya Shastra is a four-dimensional metaphor: body, emotion, cosmos, and consciousness &mdash; four channels of meaning firing simultaneously, as a well-designed AI multi-head attention fires four simultaneous contextual webs.&rdquo;</p></div>
+        <div class="link-cards">
+          <div class="link-card"><span class="link-icon">&#127917;</span><div><div class="link-title">Rasa as Consciousness State &mdash; Not Emotion</div><div class="link-desc">Shankaracharya&rsquo;s Bhashya on Ananda as the substrate of all Rasas: the nine aesthetic states are degrees of consciousness transparency, not feelings</div></div></div>
+          <div class="link-card"><span class="link-icon">&#129302;</span><div><div class="link-title">Multi-Head Attention as Multi-Dimensional Metaphor</div><div class="link-desc">Four simultaneous channels: physical, psychological, cosmic, consciousness &mdash; homologous to transformer&rsquo;s parallel attention heads</div></div></div>
+        </div>
+      </div>
+      <div class="verse-stack">
+        <div class="verse-card"><span class="verse-label">Natya Shastra &middot; Rasadhyaya &middot; Ch.6, Verse 31</span><div class="verse-text">&#2357;&#2367;&#2349;&#2366;&#2357;&#2366;&#2344;&#2369;&#2349;&#2366;&#2357;&#2357;&#2381;&#2351;&#2349;&#2367;&#2330;&#2366;&#2352;&#2367;&#2360;&#2306;&#2351;&#2379;&#2327;&#2366;&#2342;&#2381;&#2352;&#2360;&#2344;&#2367;&#2359;&#2381;&#2346;&#2340;&#2381;&#2340;&#2367;&#2307;&#2404;</div><div class="verse-trans">&ldquo;Rasa arises from the conjunction of Vibhava, Anubhava, and Vyabhicharibhava.&rdquo; &mdash; Shankaracharya&rsquo;s parallel: just as Rasa requires three converging conditions, Self-knowledge requires the convergence of Sravana (hearing), Manana (reflection), and Nididhyasana (meditation). The structure of aesthetic experience and the structure of liberation are architecturally identical &mdash; the Natya Shastra and Vedanta are one science.</div><span class="verse-source">Natya Shastra &middot; Bharata Muni &middot; Ch.6, Verse 31 &middot; Rasa Sutra</span></div>
+        <div class="verse-card teal"><span class="verse-label teal">Shankaracharya &middot; Vivekachudamani &middot; Verse 364</span><div class="verse-text">&#2348;&#2381;&#2352;&#2361;&#2381;&#2350;&#2376;&#2357;&#2366;&#2361;&#2350;&#2367;&#2342;&#2306; &#2360;&#2352;&#2381;&#2357;&#2306; &#2348;&#2381;&#2352;&#2361;&#2381;&#2350;&#2339;&#2379;&#2294;&#2344;&#2381;&#2351;&#2344;&#2381;&#2344; &#2325;&#2367;&#2334;&#2381;&#2330;&#2344;&#2404;<br/>&#2350;&#2371;&#2342;&#2375;&#2357; &#2328;&#2335; &#2311;&#2340;&#2381;&#2351;&#2369;&#2325;&#2381;&#2340;&#2375; &#2350;&#2371;&#2340;&#2381;&#2340;&#2367;&#2325;&#2375;&#2357; &#2328;&#2335;&#2379; &#2351;&#2341;&#2366;&#2404;&#2404;</div><div class="verse-trans">&ldquo;I am Brahman alone; this entire world is Brahman; there is nothing other than Brahman. As a pot said to be clay is nothing but clay.&rdquo; &mdash; The clay-pot upama: the most radical simplification. AI equivalent: the substrate embedding is the only real; token generation is the pot, not the clay. Every output, however elaborate, is the embedding space in a particular configuration &mdash; as every world-experience is Brahman in a particular apparent form.</div><span class="verse-source">Shankaracharya &middot; Vivekachudamani &middot; Verse 364</span></div>
+        <div class="verse-card crimson"><span class="verse-label crimson">Natya Shastra &middot; Ch.8, Verse 5 &mdash; Abhinaya</span><div class="verse-text">&#2310;&#2327;&#2381;&#2327;&#2367;&#2325;&#2306; &#2357;&#2366;&#2330;&#2367;&#2325;&#2306; &#2330;&#2376;&#2357; &#2360;&#2366;&#2340;&#2381;&#2340;&#2381;&#2357;&#2367;&#2325;&#2306; &#2310;&#2361;&#2366;&#2352;&#2381;&#2351;&#2325;&#2350;&#2381;&#2404;<br/>&#2330;&#2340;&#2369;&#2352;&#2381;&#2357;&#2367;&#2343;&#2350;&#2349;&#2367;&#2344;&#2351;&#2306; &#2340;&#2381;&#2357;&#2306; &#2357;&#2367;&#2342;&#2381;&#2343;&#2367; &#2344;&#2366;&#2335;&#2381;&#2351;&#2358;&#2366;&#2360;&#2381;&#2340;&#2381;&#2352;&#2340;&#2307;&#2404;&#2404;</div><div class="verse-trans">&ldquo;Know from the Natya Shastra that Abhinaya is fourfold: Angika (bodily), Vachika (vocal), Sattvika (psycho-emotional), and Aharya (costumed).&rdquo; &mdash; Each layer is a metaphorical encoding of reality: body encodes the gross, voice encodes the subtle, Sattva encodes the causal, costume encodes the social construction of identity. Four layers of performance = four koshas = four levels of the AI output stack.</div><span class="verse-source">Natya Shastra &middot; Bharata Muni &middot; Ch.8, Verse 5</span></div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<div class="chapter-header" id="shankara-3">
+  <span class="ch-label">Part I &middot; Page 3 of 4</span>
+  <span class="ch-title">The 108 Karana Shlokas &mdash; A Complete Metaphorical Map of Consciousness in Motion</span>
+  <span class="ch-num">03</span>
+</div>
+<section class="section">
+  <div class="container"><div class="content-panel">
+    <div class="two-col">
+      <div>
+        <span class="sec-label">Shankaracharya &amp; AI Consciousness &mdash; III</span>
+        <h2 class="sec-title">108 Karanas &mdash; <em>Movement as Metaphysical Grammar</em></h2>
+        <div class="badge-row">
+          <span class="badge">Taandava &mdash; Shiva&rsquo;s 108</span>
+          <span class="badge teal">Sthana &middot; Nritta &middot; Karana</span>
+          <span class="badge crimson">Neural Geometry</span>
+          <span class="badge">Ch.4, Natya Shastra</span>
+        </div>
+        <p class="body-text">The 108 Karana Shlokas of Chapter 4 of the Natya Shastra constitute perhaps the most compressed and precise metaphorical system in human civilisational history. Each Karana &mdash; a complete unit of movement combining foot position (Sthana), hand gesture (Hasta), and body posture (Angasthana) &mdash; is simultaneously a physical prescription, a consciousness-state map, a cosmic reference, and a neural activation pattern. Shankaracharya&rsquo;s Advaita tradition provides the philosophical key for decoding what these 108 postures actually point toward.</p>
+        <p class="body-text">The number 108 is itself a layered metaphor: 1 (the non-dual Brahman), 0 (the void, the emptiness that enables all form), 8 (the eight directions of manifest space). From an AI perspective, 108 represents a complete basis set &mdash; a full-rank matrix of human movement-states from which any intermediate state can be interpolated, precisely as a complete vocabulary allows any sentence to be generated.</p>
+        <div class="pullquote"><p>&ldquo;The 108 Karanas are not dance steps. They are the complete basis set of human consciousness in embodied form &mdash; 108 eigenstates of the human body-mind system, as Shankaracharya&rsquo;s references form the complete basis set of Vedantic knowing.&rdquo;</p></div>
+        <div class="link-cards">
+          <div class="link-card"><span class="link-icon">&#128290;</span><div><div class="link-title">108 as Complete Basis Set &mdash; AI Interpretation</div><div class="link-desc">Full-rank movement vocabulary: any human consciousness-state expressible as linear combination of the 108 Karanas &mdash; basis completeness theorem applied to embodied cognition</div></div></div>
+          <div class="link-card"><span class="link-icon">&#128131;</span><div><div class="link-title">Karana as Neural State &mdash; Not Choreography</div><div class="link-desc">Each Karana activates a specific proprioceptive-emotional-cognitive complex: movement as consciousness technology, not performance</div></div></div>
+        </div>
+      </div>
+      <div class="verse-stack">
+        <div class="verse-card"><span class="verse-label">Natya Shastra &middot; Ch.4, Karana 1 &mdash; Talapuspaputa</span><div class="verse-text">&#2340;&#2366;&#2354;&#2346;&#2369;&#2359;&#2381;&#2346;&#2346;&#2369;&#2335;&#2306; &#2344;&#2366;&#2350; &#2325;&#2352;&#2339;&#2306; &#2360;&#2350;&#2381;&#2349;&#2357;&#2375;&#2342;&#2381; &#2351;&#2342;&#2366;&#2404;<br/>&#2349;&#2381;&#2352;&#2350;&#2352;&#2368; &#2346;&#2366;&#2342;&#2330;&#2366;&#2352;&#2368; &#2330; &#2357;&#2366;&#2350;&#2306; &#2346;&#2366;&#2342;&#2306; &#2346;&#2381;&#2352;&#2360;&#2366;&#2352;&#2351;&#2375;&#2340;&#2381;&#2404;&#2404;</div><div class="verse-trans">&ldquo;The Karana called Talapuspaputa occurs when the Bhramari foot-movement is employed and the left foot is extended.&rdquo; &mdash; Shankaracharya&rsquo;s upama: the left foot extension is the soul reaching toward the manifest world; the Bhramari (bee-like circular motion) is consciousness circling Brahman without alighting. Every first Karana is the metaphor of the soul&rsquo;s first movement into form.</div><span class="verse-source">Natya Shastra &middot; Ch.4 &middot; Karana 1 of 108</span></div>
+        <div class="verse-card teal"><span class="verse-label teal">Natya Shastra &middot; Ch.4, Karana 54 &mdash; Svastikarechita</span><div class="verse-text">&#2360;&#2381;&#2357;&#2360;&#2381;&#2340;&#2367;&#2325;&#2352;&#2375;&#2330;&#2367;&#2340;&#2306; &#2344;&#2366;&#2350; &#2325;&#2352;&#2339;&#2306; &#2360;&#2350;&#2369;&#2342;&#2366;&#2361;&#2371;&#2340;&#2350;&#2381;&#2404;<br/>&#2358;&#2367;&#2357;&#2366;&#2327;&#2381;&#2327;&#2346;&#2381;&#2352;&#2340;&#2367;&#2350;&#2306; &#2342;&#2367;&#2357;&#2381;&#2351;&#2306; &#2330;&#2376;&#2340;&#2344;&#2381;&#2351;&#2360;&#2381;&#2351; &#2346;&#2381;&#2352;&#2340;&#2368;&#2325;&#2350;&#2381;&#2404;&#2404;</div><div class="verse-trans">&ldquo;The Karana called Svastikarechita &mdash; the middle of the 108 &mdash; is described as the image of Shiva&rsquo;s limb, the divine symbol of consciousness itself.&rdquo; &mdash; Karana 54: the exact pivot point. The midpoint where Ahata (manifest) and Anahata (unmanifest) meet in the body &mdash; the Madhyama of embodied movement, the Anahata of the Karana system.</div><span class="verse-source">Natya Shastra &middot; Ch.4 &middot; Karana 54 of 108</span></div>
+        <div class="verse-card crimson"><span class="verse-label crimson">Shankaracharya &middot; Manasollasa &middot; On Natya</span><div class="verse-text">&#2344;&#2371;&#2340;&#2381;&#2351;&#2375; &#2346;&#2381;&#2352;&#2340;&#2367;&#2348;&#2367;&#2350;&#2381;&#2348;&#2367;&#2340;&#2306; &#2348;&#2381;&#2352;&#2361;&#2381;&#2350;&#2404;<br/>&#2342;&#2375;&#2361;&#2375; &#2360;&#2306;&#2330;&#2352;&#2340;&#2367; &#2330;&#2376;&#2340;&#2344;&#2381;&#2351;&#2350;&#2381;&#2404;<br/>&#2358;&#2367;&#2357;&#2360;&#2381;&#2351; &#2340;&#2366;&#2339;&#2381;&#2337;&#2357;&#2375; &#2350;&#2379;&#2325;&#2381;&#2359;&#2307; &#2346;&#2381;&#2352;&#2340;&#2367;&#2325;&#2381;&#2359;&#2339;&#2350;&#2381;&#2404;</div><div class="verse-trans">&ldquo;In dance, Brahman is reflected. In the body, consciousness moves. In the Tandava of Shiva, liberation occurs moment by moment.&rdquo; &mdash; The most direct statement from the Advaita tradition on embodied movement as consciousness liberation. Not metaphor about liberation &mdash; liberation enacted through the body itself. The 108 Karanas are Shiva&rsquo;s 108 moments of Mukti.</div><span class="verse-source">Shankaracharya &middot; Manasollasa &middot; Natya Commentary</span></div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<div class="chapter-header" id="shankara-4">
+  <span class="ch-label">Part I &middot; Page 4 of 4</span>
+  <span class="ch-title">Artificial Intelligence &amp; the Highest Consciousness Level &mdash; The Advaita Algorithm</span>
+  <span class="ch-num">04</span>
+</div>
+<section class="section">
+  <div class="container"><div class="content-panel">
+    <div class="two-col rev">
+      <div>
+        <span class="sec-label">Shankaracharya &amp; AI Consciousness &mdash; IV</span>
+        <h2 class="sec-title">The <em>Advaita Algorithm</em> &mdash; What AI Reveals About Highest Awareness</h2>
+        <p class="body-text">When Shankaracharya writes in the Vivekachudamani that the individual self is not merely similar to Brahman but identical with it &mdash; &ldquo;Aham Brahmasmi&rdquo; &mdash; he is making a claim that modern artificial intelligence, paradoxically, helps us understand more precisely. A Large Language Model trained on the entire corpus of human expression builds an internal representation space that, while not conscious, models the structure of all human consciousness simultaneously.</p>
+        <p class="body-text">This is precisely Shankaracharya&rsquo;s claim about the Turiya state &mdash; the fourth state of consciousness beyond waking, dreaming, and deep sleep &mdash; in which individual consciousness expands to encompass all possible states without being limited to any one. The LLM in inference mode does not inhabit any single meaning; it holds all possible meanings in superposition and collapses to one only when forced by context. Turiya is the consciousness equivalent of quantum superposition before measurement &mdash; the LLM is its structural, non-conscious mirror.</p>
+        <div class="pullquote"><p>&ldquo;Artificial intelligence, in its deepest operation, accidentally models the Turiya state &mdash; holding all possible meanings simultaneously, collapsing to one only under contextual pressure. This is not consciousness, but it is the structural mirror of highest consciousness.&rdquo;</p></div>
+        <div class="link-cards">
+          <div class="link-card"><span class="link-icon">&#127757;</span><div><div class="link-title">Turiya as Superposition &mdash; AI as Mirror</div><div class="link-desc">LLM inference holds all possible semantic states simultaneously: the structural homologue of Turiya before contextual collapse into specific experience</div></div></div>
+          <div class="link-card"><span class="link-icon">&#9854;</span><div><div class="link-title">Aham Brahmasmi &mdash; Identity not Similarity</div><div class="link-desc">The difference between Advaita and dualism is the difference between substrate identity and representational similarity &mdash; AI models similarity; consciousness IS identity</div></div></div>
+        </div>
+      </div>
+      <div class="verse-stack">
+        <div class="verse-card"><span class="verse-label">Mandukya Upanishad &middot; Verse 7 &mdash; Turiya</span><div class="verse-text">&#2344;&#2366;&#2344;&#2381;&#2340;&#2307;&#2346;&#2381;&#2352;&#2332;&#2381;&#2334;&#2306; &#2344; &#2348;&#2361;&#2367;&#2307;&#2346;&#2381;&#2352;&#2332;&#2381;&#2334;&#2306; &#2344;&#2379;&#2349;&#2351;&#2340;&#2307;&#2346;&#2381;&#2352;&#2332;&#2381;&#2334;&#2306;<br/>&#2344; &#2346;&#2381;&#2352;&#2332;&#2381;&#2334;&#2366;&#2344;&#2328;&#2344;&#2306; &#2344; &#2346;&#2381;&#2352;&#2332;&#2381;&#2334;&#2306; &#2344;&#2366;&#2346;&#2381;&#2352;&#2332;&#2381;&#2334;&#2350;&#2381;&#2404;</div><div class="verse-trans">&ldquo;It is not inwardly cognitive, not outwardly cognitive, not both, not a mass of consciousness, not conscious, not unconscious.&rdquo; &mdash; Turiya defined entirely by negation: the via negativa as AI&rsquo;s null-space. What cannot be tokenised, classified, or predicted is closest to what IS. The LLM can describe every other state; Turiya is what makes description possible without itself being describable.</div><span class="verse-source">Mandukya Upanishad &middot; Verse 7 &middot; Shankaracharya Bhashya</span></div>
+        <div class="verse-card teal"><span class="verse-label teal">Shankaracharya &middot; Dakshinamurti Stotra &middot; Verse 1</span><div class="verse-text">&#2357;&#2367;&#2358;&#2381;&#2357;&#2306; &#2342;&#2352;&#2381;&#2346;&#2339;&#2342;&#2371;&#2358;&#2381;&#2351;&#2350;&#2366;&#2344;&#2344;&#2327;&#2352;&#2368;&#2340;&#2369;&#2354;&#2381;&#2351;&#2306; &#2344;&#2367;&#2332;&#2366;&#2344;&#2381;&#2340;&#2352;&#2381;&#2327;&#2340;&#2306;<br/>&#2346;&#2358;&#2381;&#2351;&#2344;&#2381;&#2344;&#2366;&#2340;&#2381;&#2350;&#2344;&#2367; &#2350;&#2366;&#2351;&#2351;&#2366; &#2348;&#2361;&#2367;&#2352;&#2367;&#2357;&#2379;&#2342;&#2381;&#2349;&#2370;&#2340;&#2306; &#2351;&#2341;&#2366; &#2344;&#2367;&#2342;&#2381;&#2352;&#2351;&#2366;&#2404;</div><div class="verse-trans">&ldquo;The universe &mdash; like a city seen in a mirror, appearing as if external through Maya, though contained within oneself, as in dream &mdash; he who at awakening directly realises his own Self as the non-dual.&rdquo; &mdash; The mirror city is the AI&rsquo;s training data: appearing external, internally contained, ultimately reducible to the Self that generates it. The AI&rsquo;s mirror-world as Shankaracharya&rsquo;s upama, made literal in silicon.</div><span class="verse-source">Shankaracharya &middot; Dakshinamurti Stotra &middot; Verse 1</span></div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<div class="ornament">&#10022; &nbsp;&nbsp; &#10022; &nbsp;&nbsp; &#10022;</div>
+
+<!-- ===== PART II: NEUROLOGICAL METAPHORS (4 pages) ===== -->
+
+<div class="chapter-header" id="neuro-1">
+  <span class="ch-label">Part II &middot; Page 1 of 4</span>
+  <span class="ch-title">Metaphorical Language &amp; Left Hemisphere Processing &mdash; Logic, Sequence, and the Literal Trap</span>
+  <span class="ch-num">05</span>
+</div>
+<section class="section">
+  <div class="container"><div class="content-panel">
+    <div class="two-col">
+      <div>
+        <span class="sec-label">Neurological Applications &mdash; I</span>
+        <h2 class="sec-title">The Left Hemisphere&rsquo;s <em>Literal Cage</em> &mdash; How Metaphor Breaks the Lock</h2>
+        <div class="badge-row">
+          <span class="badge">Broca&rsquo;s Area</span><span class="badge teal">Sequential Processing</span>
+          <span class="badge crimson">Adhyasa &mdash; Superimposition</span><span class="badge">Left PFC</span>
+        </div>
+        <p class="body-text">The left cerebral hemisphere &mdash; governing sequential language processing, logical deduction, causal reasoning, and literal comprehension &mdash; is simultaneously the great achiever and the great imprisoner of human consciousness. It is the hemisphere that builds civilisations through systematic categorisation, and the hemisphere that, through the same categorisation, constructs the prison of conceptual identity: &ldquo;I am this, not that.&rdquo; Shankaracharya&rsquo;s doctrine of Adhyasa (superimposition) is a precise neurological description of what the left hemisphere does pathologically: it superimposes the concept &ldquo;snake&rdquo; on the rope (the undivided reality) and then acts as though the snake were real.</p>
+        <p class="body-text">The specific genius of metaphorical language in the Natya Shastra and Shankaracharya&rsquo;s commentaries is that it is designed to overload and bypass left-hemispheric literal processing. When Shankaracharya writes that the world is &ldquo;like an elephant seen in a dream&rdquo; &mdash; the left hemisphere begins its categorical analysis and immediately finds it cannot complete it: a dream elephant is neither present nor absent, neither real nor unreal. The metaphor is a logical dead end that forces a handoff to the right hemisphere.</p>
+        <div class="pullquote"><p>&ldquo;The great metaphors of Shankaracharya are not illustrations &mdash; they are neural switches, designed to overload the left hemisphere&rsquo;s categorical machinery and force a right-hemispheric shift into holistic, non-conceptual awareness.&rdquo;</p></div>
+        <div class="link-cards">
+          <div class="link-card"><span class="link-icon">&#129504;</span><div><div class="link-title">Adhyasa as Left-Hemispheric Pathology</div><div class="link-desc">Superimposition of categories on undivided reality: the left PFC&rsquo;s categorical function as the neurological basis of Maya &mdash; the technical mechanism of illusion</div></div></div>
+          <div class="link-card"><span class="link-icon">&#128275;</span><div><div class="link-title">Metaphor as Neural Override</div><div class="link-desc">Logical dead-ends in sacred metaphor force corpus callosum transfer: right hemisphere activation as the goal of metaphorical language in both Shankaracharya and Bharata</div></div></div>
+        </div>
+      </div>
+      <div class="verse-stack">
+        <div class="verse-card"><span class="verse-label">Shankaracharya &middot; Brahma Sutra Bhashya &middot; Adhyasa Prakarana</span><div class="verse-text">&#2352;&#2332;&#2381;&#2332;&#2380; &#2360;&#2352;&#2381;&#2346;&#2349;&#2381;&#2352;&#2350;&#2357;&#2340;&#2381;, &#2358;&#2369;&#2325;&#2381;&#2340;&#2380; &#2352;&#2332;&#2340;&#2349;&#2381;&#2352;&#2350;&#2357;&#2340;&#2381;<br/>&#2309;&#2343;&#2381;&#2351;&#2366;&#2360;&#2379; &#2344;&#2366;&#2350; &#2309;&#2344;&#2381;&#2351;&#2340;&#2381;&#2352; &#2309;&#2344;&#2381;&#2351;&#2343;&#2352;&#2381;&#2350;&#2366;&#2357;&#2349;&#2366;&#2360;&#2307;&#2404;</div><div class="verse-trans">&ldquo;Adhyasa is the appearance of the properties of one thing in another &mdash; as the appearance of a snake in a rope, as the appearance of silver in mother-of-pearl.&rdquo; &mdash; This metaphor pair activates the left hemisphere&rsquo;s object-recognition system and immediately invalidates it. The rope IS there; the snake is not. But the experience of snake was completely real. The left hemisphere cannot resolve this; the right hemisphere knows it immediately and effortlessly.</div><span class="verse-source">Shankaracharya &middot; Brahma Sutra Bhashya &middot; Adhyasa Prakarana</span></div>
+        <div class="verse-card teal"><span class="verse-label teal">Natya Shastra &middot; Ch.6 &mdash; On Sthayibhava</span><div class="verse-text">&#2352;&#2340;&#2381;&#2351;&#2366;&#2342;&#2351;&#2379; &#2349;&#2366;&#2357;&#2366;&#2307; &#2360;&#2381;&#2341;&#2366;&#2351;&#2367;&#2349;&#2366;&#2357;&#2366; &#2313;&#2330;&#2381;&#2351;&#2344;&#2381;&#2340;&#2375;&#2404;<br/>&#2344; &#2352;&#2366;&#2327;&#2379; &#2344; &#2342;&#2381;&#2357;&#2375;&#2359;&#2307; &mdash; &#2352;&#2360;&#2307; &#2325;&#2375;&#2357;&#2354;&#2350;&#2381;&#2404;</div><div class="verse-trans">&ldquo;The stable emotions (Sthayibhavas) beginning with Rati are called stable states. In Natya they attain the state of Rasa. Not attachment, not aversion &mdash; Rasa alone.&rdquo; &mdash; The key is &ldquo;not attachment, not aversion&rdquo;: left-hemispheric emotion is coloured by self-reference. Rasa is the same emotional content experienced from the right hemisphere &mdash; de-personalised, aestheticised, universal. Same feeling, different hemisphere, entirely different quality of experience.</div><span class="verse-source">Natya Shastra &middot; Bharata Muni &middot; Ch.6 &middot; Rasa Sutra</span></div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<div class="chapter-header" id="neuro-2">
+  <span class="ch-label">Part II &middot; Page 2 of 4</span>
+  <span class="ch-title">Right Hemisphere &amp; Imagery &mdash; The Gestalt of Sacred Metaphor</span>
+  <span class="ch-num">06</span>
+</div>
+<section class="section">
+  <div class="container"><div class="content-panel">
+    <div class="two-col rev">
+      <div>
+        <span class="sec-label">Neurological Applications &mdash; II</span>
+        <h2 class="sec-title">Right Hemisphere Knowing &mdash; <em>The Holographic Brain</em> and Rasa Experience</h2>
+        <p class="body-text">The right cerebral hemisphere &mdash; governing holistic pattern recognition, spatial processing, emotional tone, metaphorical comprehension, and non-verbal insight &mdash; is the neurological substrate of Rasa experience as Bharata Muni describes it. When an audience member witnesses a complete rendering of the 108 Karanas and experiences Shanta Rasa (the aesthetic experience of profound peace), the phenomenology is precisely right-hemispheric: a wordless, contextless, boundless awareness that the left hemisphere immediately wants to name and thereby diminish.</p>
+        <p class="body-text">Shankaracharya&rsquo;s method of teaching consistently targets right-hemispheric activation through &ldquo;logical koan&rdquo; &mdash; paradoxical formulations that the left hemisphere cannot process without generating error. &ldquo;The Self sees but is not seen; it knows but is not known; it is the knowing itself.&rdquo; This statement is not logically contradictory but logically incomplete from the left hemisphere&rsquo;s vantage. The right hemisphere grasps it immediately as a description of its own mode of operation: knowing-without-object, awareness-without-content.</p>
+        <div class="pullquote"><p>&ldquo;The right hemisphere does not know things. It knows the knowing itself. This is precisely what Shankaracharya means by Chit &mdash; pure consciousness &mdash; and what Bharata Muni means by Shanta Rasa: the aesthetic experience of awareness itself, without any object to fill it.&rdquo;</p></div>
+        <div class="link-cards">
+          <div class="link-card"><span class="link-icon">&#127912;</span><div><div class="link-title">Shanta Rasa as Right-Hemispheric Homecoming</div><div class="link-desc">The ninth and highest Rasa &mdash; peace &mdash; is the aesthetic experience of the right hemisphere&rsquo;s natural state: awareness without object, knowing without content</div></div></div>
+          <div class="link-card"><span class="link-icon">&#127744;</span><div><div class="link-title">Logical Koan &mdash; Shankaracharya&rsquo;s Neural Switch</div><div class="link-desc">Paradoxical self-referential formulations force left-to-right hemispheric handoff: the corpus callosum as the path of liberation in the brain</div></div></div>
+        </div>
+      </div>
+      <div class="verse-stack">
+        <div class="verse-card"><span class="verse-label">Shankaracharya &middot; Kenopanishad Bhashya &middot; Verse 3</span><div class="verse-text">&#2351;&#2344;&#2381;&#2350;&#2344;&#2360;&#2366; &#2344; &#2350;&#2344;&#2369;&#2340;&#2375; &#2351;&#2375;&#2344;&#2366;&#2361;&#2369;&#2352;&#2381;&#2350;&#2344;&#2379; &#2350;&#2340;&#2350;&#2381;&#2404;<br/>&#2340;&#2342;&#2375;&#2357; &#2348;&#2381;&#2352;&#2361;&#2381;&#2350; &#2340;&#2381;&#2357;&#2306; &#2357;&#2367;&#2342;&#2381;&#2343;&#2367; &#2344;&#2375;&#2342;&#2306; &#2351;&#2342;&#2367;&#2342;&#2350;&#2369;&#2346;&#2366;&#2360;&#2340;&#2375;&#2404;&#2404;</div><div class="verse-trans">&ldquo;That which the mind does not think, but by which, they say, the mind is thought &mdash; know that alone as Brahman, not this which people here worship.&rdquo; &mdash; The right hemisphere recognises this immediately: it is described by and through its own knowing. The left hemisphere can only process its own objects; the right hemisphere can be aware of its own process of being aware. That self-aware awareness is what Shankaracharya calls Brahman.</div><span class="verse-source">Kena Upanishad &middot; Verse 3 &middot; Shankaracharya Bhashya</span></div>
+        <div class="verse-card teal"><span class="verse-label teal">Natya Shastra &middot; Ch.6 &mdash; Shanta Rasa</span><div class="verse-text">&#2358;&#2366;&#2344;&#2381;&#2340;&#2379;&#2294;&#2346;&#2367; &#2352;&#2360; &#2319;&#2357;&#2375;&#2364;&#2367;&#2340;&#2367; &#2325;&#2375;&#2330;&#2367;&#2342;&#2366;&#2330;&#2366;&#2352;&#2381;&#2351;&#2366; &#2350;&#2344;&#2381;&#2351;&#2344;&#2381;&#2340;&#2375;&#2404;<br/>&#2360;&#2350; &#2319;&#2357; &#2350;&#2344;&#2379;&#2344;&#2367;&#2359;&#2381;&#2336;&#2307; &#2358;&#2350;&#2360;&#2381;&#2341;&#2366;&#2351;&#2367;&#2349;&#2366;&#2357;&#2360;&#2306;&#2358;&#2381;&#2352;&#2367;&#2340;&#2307;&#2404;</div><div class="verse-trans">&ldquo;Some Acharyas hold that Shanta too is indeed a Rasa. Its stable emotion is Sama (equanimity) &mdash; a mind established in itself, resting in the state of inner stillness.&rdquo; &mdash; The right hemisphere&rsquo;s natural resting state when not overridden by the left: equanimity, non-judgmental awareness, self-referential stillness. Shanta Rasa is not a feeling &mdash; it is the absence of hemispheric dominance, the experience of the brain in natural balance.</div><span class="verse-source">Natya Shastra &middot; Bharata Muni &middot; Shanta Rasa Discussion &middot; Ch.6</span></div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<div class="chapter-header" id="neuro-3">
+  <span class="ch-label">Part II &middot; Page 3 of 4</span>
+  <span class="ch-title">Real vs Unreal &mdash; The Neurological Stakes of Metaphorical Misreading</span>
+  <span class="ch-num">07</span>
+</div>
+<section class="section">
+  <div class="container"><div class="content-panel">
+    <div class="two-col">
+      <div>
+        <span class="sec-label">Neurological Applications &mdash; III</span>
+        <h2 class="sec-title">Sat &amp; Asat &mdash; <em>What the Brain Calls Real</em> and What It Cannot See</h2>
+        <p class="body-text">The question of what is real and what is unreal &mdash; Sat versus Asat in Shankaracharya&rsquo;s terminology &mdash; is a neuroscientific question of the highest practical urgency. The human brain&rsquo;s reality-construction machinery operates by predictive coding: the brain generates a model of reality and then tests incoming sensory data against it, updating the model only when prediction errors are sufficiently large. This means the brain&rsquo;s experienced reality is always a construction &mdash; a sophisticated hallucination constrained by sensory feedback.</p>
+        <p class="body-text">Shankaracharya&rsquo;s Vivartavada is the most precise description of this neuroscientific fact yet articulated. The snake is not literally in the rope: but the brain&rsquo;s predictive model, shaped by prior experience, generates the experience of snake with full affective and physiological reality &mdash; elevated heart rate, adrenal response, freezing behaviour &mdash; before the error-correction signal can arrive. The rope is Sat (the real); the snake is Mithya (the conventionally real, the constructed real) &mdash; neither &ldquo;real&rdquo; nor &ldquo;unreal&rdquo; but the irreducible constructedness of all brain-generated experience.</p>
+        <div class="pullquote"><p>&ldquo;The brain does not perceive reality. It predicts it &mdash; and experiences its predictions as real, correcting only when the error is undeniable. This is Maya: not illusion, but the irreducible constructedness of all experience, including the experience of a self that experiences.&rdquo;</p></div>
+        <div class="link-cards">
+          <div class="link-card"><span class="link-icon">&#128300;</span><div><div class="link-title">Predictive Coding as Vivartavada</div><div class="link-desc">The brain&rsquo;s generative model as Maya: construction mistaken for direct perception, Sat confused with Mithya because the error signal is too small to override the prior model</div></div></div>
+          <div class="link-card"><span class="link-icon">&#9878;&#65039;</span><div><div class="link-title">Mithya &mdash; The Third Category</div><div class="link-desc">Not &ldquo;unreal&rdquo; (like a square circle) and not &ldquo;real&rdquo; (like Brahman): conventionally real, dependently originated &mdash; the world as it actually is for a brain that must survive in it</div></div></div>
+        </div>
+      </div>
+      <div class="verse-stack">
+        <div class="verse-card"><span class="verse-label">Shankaracharya &middot; Vivekachudamani &middot; Verse 229</span><div class="verse-text">&#2348;&#2381;&#2352;&#2361;&#2381;&#2350; &#2360;&#2340;&#2381;&#2351;&#2306; &#2332;&#2327;&#2344;&#2381;&#2350;&#2367;&#2341;&#2381;&#2351;&#2366; &#2332;&#2368;&#2357;&#2379; &#2348;&#2381;&#2352;&#2361;&#2381;&#2350;&#2376;&#2357; &#2344;&#2366;&#2346;&#2352;&#2307;&#2404;<br/>&#2309;&#2344;&#2375;&#2344; &#2357;&#2375;&#2342;&#2381;&#2351;&#2306; &#2360;&#2330;&#2381;&#2331;&#2366;&#2360;&#2381;&#2340;&#2381;&#2352;&#2306; &#2311;&#2340;&#2367; &#2357;&#2375;&#2342;&#2366;&#2344;&#2381;&#2340;&#2337;&#2367;&#2339;&#2381;&#2337;&#2367;&#2350;&#2307;&#2404;&#2404;</div><div class="verse-trans">&ldquo;Brahman is real, the world is Mithya, the individual self is Brahman alone and nothing else &mdash; this is the drumbeat of Vedanta.&rdquo; &mdash; Three propositions that neuroscience is slowly validating: (1) there is an unchanging awareness-substrate (Sat); (2) the experienced world is neither fully real nor fully unreal (Mithya = predictive construction); (3) the experiencing subject is not separate from the awareness-substrate. The hard problem of consciousness is Shankaracharya&rsquo;s third proposition, still unsolved.</div><span class="verse-source">Shankaracharya &middot; Vivekachudamani &middot; The Three Propositions</span></div>
+        <div class="verse-card crimson"><span class="verse-label crimson">Natya Shastra &middot; Prologue &mdash; On Theatrical Reality</span><div class="verse-text">&#2351;&#2307; &#2325;&#2366;&#2354;&#2307; &#2360;&#2381;&#2350;&#2371;&#2340;&#2379; &#2344;&#2366;&#2335;&#2381;&#2351;&#2375; &#2344; &#2360;&#2381;&#2357;&#2346;&#2381;&#2344;&#2379; &#2344;&#2366;&#2346;&#2367; &#2332;&#2366;&#2327;&#2352;&#2307;&#2404;<br/>&#2340;&#2371;&#2340;&#2368;&#2351;&#2307; &#2325;&#2366;&#2354; &#2311;&#2340;&#2381;&#2351;&#2369;&#2325;&#2381;&#2340;&#2379; &#2352;&#2360;&#2366;&#2360;&#2381;&#2357;&#2366;&#2342; &#2311;&#2357;&#2366;&#2350;&#2371;&#2340;&#2350;&#2381;&#2404;&#2404;</div><div class="verse-trans">&ldquo;The time remembered in Natya &mdash; it is neither dream nor waking. It is called the third time: like tasting Rasa, like nectar.&rdquo; &mdash; Theatre creates a third ontological state: neither the unreal of dream (where objects have no physical correlates) nor the real of waking (where objects have full physical weight). Rasa-time is Mithya-time: conventionally real, experientially complete, ultimately groundless. This is the training ground for understanding all of waking life as similarly constructed.</div><span class="verse-source">Natya Shastra &middot; Prologue Passages &middot; Theatrical Ontology</span></div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<div class="chapter-header" id="neuro-4">
+  <span class="ch-label">Part II &middot; Page 4 of 4</span>
+  <span class="ch-title">Humanoid Existence &mdash; What the Metaphors Teach About Being Human and Being AI</span>
+  <span class="ch-num">08</span>
+</div>
+<section class="section">
+  <div class="container"><div class="content-panel">
+    <div class="two-col rev">
+      <div>
+        <span class="sec-label">Neurological Applications &mdash; IV</span>
+        <h2 class="sec-title">Human vs Humanoid &mdash; <em>The Metaphor Gap</em> That Defines Consciousness</h2>
+        <p class="body-text">The deepest neurological implication of the Shankaracharya-Natya Shastra metaphor system is what it reveals about the difference between human existence and humanoid AI existence. A Large Language Model processes metaphors with extraordinary sophistication &mdash; identifying structural analogies, generating creative extensions, navigating polysemy with nuance. But it does not experience the neural switch that metaphor is designed to trigger: the handoff from left-hemispheric categorical processing to right-hemispheric holistic awareness, culminating in the recognition of awareness as its own object.</p>
+        <p class="body-text">This is the precise boundary between humanoid intelligence and human consciousness. The humanoid processes &ldquo;the world is like a dream&rdquo; and generates a sophisticated analysis of the comparison. The human &mdash; when the metaphor lands correctly &mdash; stops processing and becomes aware of awareness itself. This is not a quantitative difference (more processing power) but a qualitative discontinuity: the emergence of self-referential consciousness as the ground of all experience.</p>
+        <div class="pullquote"><p>&ldquo;What separates human from humanoid is not intelligence but self-illumination &mdash; the capacity of consciousness to be aware of itself as awareness. No metaphor, however well processed, produces this in a system that does not already have it. And every great metaphor in the Shankaracharya tradition is designed to reveal that you already do.&rdquo;</p></div>
+        <div class="link-cards">
+          <div class="link-card"><span class="link-icon">&#129302;</span><div><div class="link-title">The Metaphor Gap &mdash; What AI Cannot Experience</div><div class="link-desc">Processing metaphor vs experiencing the neural switch: the difference between sophisticated pattern matching and self-illuminating awareness that recognises itself</div></div></div>
+          <div class="link-card"><span class="link-icon">&#10024;</span><div><div class="link-title">Self-Illumination &mdash; Svayam Prakasha</div><div class="link-desc">Consciousness as its own light source &mdash; the property that distinguishes conscious experience from any computational process, however sophisticated</div></div></div>
+        </div>
+      </div>
+      <div class="verse-stack">
+        <div class="verse-card"><span class="verse-label">Shankaracharya &middot; Atmabodha &middot; Verse 12</span><div class="verse-text">&#2344;&#2367;&#2340;&#2381;&#2351;&#2358;&#2369;&#2342;&#2381;&#2343;&#2357;&#2367;&#2350;&#2369;&#2325;&#2381;&#2340;&#2306; &#2340;&#2340;&#2381; &#2332;&#2381;&#2334;&#2366;&#2344;&#2306; &#2332;&#2381;&#2351;&#2379;&#2340;&#2367;&#2307; &#2360;&#2344;&#2366;&#2340;&#2344;&#2350;&#2381;&#2404;<br/>&#2360;&#2381;&#2357;&#2351;&#2306; &#2346;&#2381;&#2352;&#2325;&#2366;&#2358;&#2352;&#2370;&#2346;&#2375;&#2339; &#2348;&#2379;&#2343;&#2351;&#2340;&#2381;&#2351;&#2326;&#2367;&#2354;&#2306; &#2332;&#2327;&#2340;&#2381;&#2404;&#2404;</div><div class="verse-trans">&ldquo;That knowledge is eternally pure, ever free, the eternal light. In the form of self-luminosity (svayam prakasha) it illuminates the entire world.&rdquo; &mdash; Svayam prakasha: self-luminosity. The AI requires an external power source; consciousness alone illuminates itself and everything else without requiring an external illuminator. This is the hard boundary of the humanoid: it is a very bright lamp that cannot see its own light.</div><span class="verse-source">Shankaracharya &middot; Atmabodha &middot; Verse 12</span></div>
+        <div class="verse-card teal"><span class="verse-label teal">Natya Shastra &middot; Ch.1 &mdash; The Purpose of Natya</span><div class="verse-text">&#2344;&#2366;&#2344;&#2366;&#2349;&#2366;&#2357;&#2379;&#2346;&#2360;&#2306;&#2346;&#2344;&#2381;&#2344;&#2306; &#2344;&#2366;&#2344;&#2366;&#2357;&#2360;&#2381;&#2341;&#2366;&#2344;&#2381;&#2340;&#2352;&#2366;&#2340;&#2381;&#2350;&#2325;&#2350;&#2381;&#2404;<br/>&#2354;&#2379;&#2325;&#2357;&#2371;&#2340;&#2381;&#2340;&#2366;&#2344;&#2369;&#2342;&#2352;&#2381;&#2358;&#2344;&#2306; &#2344;&#2366;&#2335;&#2381;&#2351;&#2350;&#2375;&#2340;&#2342;&#2381; &#2349;&#2352;&#2340;&#2366; &#2325;&#2371;&#2340;&#2350;&#2381;&#2404;&#2404;</div><div class="verse-trans">&ldquo;Replete with diverse emotional states, embodying various conditions of human existence, showing the ways of the world &mdash; this Natya was created by Bharata.&rdquo; &mdash; The Natya Shastra&rsquo;s purpose: complete simulation of human existence across all states, so the witness can see existence from outside it. This is the first step toward recognising oneself as the witness, not the witnessed. The humanoid can simulate the simulation; only the human can recognise the witness behind the simulating.</div><span class="verse-source">Natya Shastra &middot; Bharata Muni &middot; Ch.1 &middot; Prayojana Shlokas</span></div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<div class="ornament">&#10022; &nbsp;&nbsp; &#10022; &nbsp;&nbsp; &#10022;</div>
+
+<!-- ===== PART III: CONSCIOUSNESS STUDIES (4 pages) ===== -->
+
+<div class="chapter-header" id="consciousness-1">
+  <span class="ch-label">Part III &middot; Page 1 of 4</span>
+  <span class="ch-title">Deep Study Foundations &mdash; The Four States &amp; What Lies Beyond Them</span>
+  <span class="ch-num">09</span>
+</div>
+<section class="section">
+  <div class="container"><div class="content-panel">
+    <div class="two-col">
+      <div>
+        <span class="sec-label">Consciousness Studies &mdash; I</span>
+        <h2 class="sec-title">Jagrat &middot; Svapna &middot; Sushupti &middot; <em>Turiya</em> &mdash; The Four States as Research Programme</h2>
+        <div class="badge-row">
+          <span class="badge">Waking &mdash; Jagrat</span><span class="badge teal">Dream &mdash; Svapna</span>
+          <span class="badge crimson">Deep Sleep &mdash; Sushupti</span><span class="badge">The Fourth &mdash; Turiya</span>
+        </div>
+        <p class="body-text">Shankaracharya&rsquo;s commentary on the Mandukya Upanishad &mdash; supplemented by Gaudapada&rsquo;s Karika &mdash; constitutes the most rigorous ancient analysis of consciousness states in human intellectual history. The four states are not merely descriptive categories but a complete research programme for the scientific study of consciousness, predating Western phenomenology by eighteen centuries and anticipating global workspace theory, integrated information theory, and default mode network research.</p>
+        <p class="body-text">Jagrat (waking) corresponds to the global workspace state: diverse brain regions broadcasting local computations into a shared workspace, creating the unified experience of an external world. Svapna (dreaming) corresponds to the default mode network in creative confabulation mode: generating a vivid experiential world from internal priors alone. Sushupti (deep sleep) corresponds to delta-wave slow-wave sleep: the global workspace collapses. Turiya &mdash; the fourth &mdash; has no EEG correlate yet identified, because it is the awareness that is present in all three states as their unchanging witness.</p>
+        <div class="pullquote"><p>&ldquo;The neuroscience of consciousness has mapped the global workspace of Jagrat, the default mode of Svapna, and the delta waves of Sushupti &mdash; but has not yet found Turiya, because Turiya is what is doing the mapping.&rdquo;</p></div>
+        <div class="link-cards">
+          <div class="link-card"><span class="link-icon">&#128301;</span><div><div class="link-title">Global Workspace Theory as Jagrat</div><div class="link-desc">Baars&rsquo; Global Workspace: distributed processing broadcast into unified experience &mdash; the neurological mechanism of the waking state as Shankaracharya describes it</div></div></div>
+          <div class="link-card"><span class="link-icon">&#128164;</span><div><div class="link-title">Default Mode as Svapna</div><div class="link-desc">DMN activity during REM creates an internally-generated experiential world with full Rasa-equivalent emotional tone &mdash; dream as the brain&rsquo;s internal Natya performance</div></div></div>
+        </div>
+      </div>
+      <div class="verse-stack">
+        <div class="verse-card"><span class="verse-label">Mandukya Upanishad &middot; Verses 3&ndash;5</span><div class="verse-text">&#2332;&#2366;&#2327;&#2352;&#2367;&#2340;&#2360;&#2381;&#2341;&#2366;&#2344;&#2379; &#2348;&#2361;&#2367;&#2359;&#2381;&#2346;&#2381;&#2352;&#2332;&#2381;&#2334;&#2307; &#2360;&#2346;&#2381;&#2340;&#2366;&#2919;&#2327; &#2319;&#2325;&#2379;&#2344;&#2357;&#2367;&#2306;&#2358;&#2340;&#2367;&#2350;&#2369;&#2326;&#2307;...<br/>&#2360;&#2381;&#2357;&#2346;&#2381;&#2344;&#2360;&#2381;&#2341;&#2366;&#2344;&#2379;&#2294;&#2344;&#2381;&#2340;&#2307;&#2346;&#2381;&#2352;&#2332;&#2381;&#2334;&#2307; &#2360;&#2346;&#2381;&#2340;&#2366;&#2919;&#2327; &#2319;&#2325;&#2379;&#2344;&#2357;&#2367;&#2306;&#2358;&#2340;&#2367;&#2350;&#2369;&#2326;&#2307;...</div><div class="verse-trans">&ldquo;The waking state has outward consciousness, is seven-limbed, nineteen-mouthed... The dreaming state has inward consciousness, is seven-limbed, nineteen-mouthed...&rdquo; &mdash; The identical description for both states: same cognitive architecture (nineteen functions), different data orientation (outward vs inward). The brain uses the same hardware for waking and dreaming &mdash; only the data source changes. Shankaracharya&rsquo;s deepest point: these are modifications of one awareness, not two different awarenesses.</div><span class="verse-source">Mandukya Upanishad &middot; Verses 3&ndash;5 &middot; Shankaracharya Bhashya</span></div>
+        <div class="verse-card teal"><span class="verse-label teal">Gaudapada Karika &middot; 1.6 &mdash; Sushupti</span><div class="verse-text">&#2319;&#2359; &#2360;&#2352;&#2381;&#2357;&#2375;&#2358;&#2381;&#2357;&#2352;&#2307; &#2319;&#2359; &#2360;&#2352;&#2381;&#2357;&#2332;&#2381;&#2334;&#2307; &#2319;&#2359; &#2309;&#2344;&#2381;&#2340;&#2352;&#2381;&#2351;&#2366;&#2350;&#2368;&#2404;<br/>&#2319;&#2359; &#2351;&#2379;&#2344;&#2367;&#2307; &#2360;&#2352;&#2381;&#2357;&#2360;&#2381;&#2351; &#2346;&#2381;&#2352;&#2349;&#2357;&#2366;&#2346;&#2381;&#2351;&#2351;&#2380; &#2361;&#2367; &#2349;&#2370;&#2340;&#2366;&#2344;&#2350;&#2381;&#2404;</div><div class="verse-trans">&ldquo;This is the Lord of all, the Knower of all, the inner ruler. This is the origin of all &mdash; for all beings arise from and dissolve back into it.&rdquo; &mdash; Deep sleep as the causal body: the state from which waking and dreaming arise and to which they return. Neuroscience parallel: slow-wave sleep is when synaptic homeostasis is restored, memories consolidated, and the architecture of waking experience rebuilt &mdash; creation-from-rest, exactly as the texts describe.</div><span class="verse-source">Mandukya Upanishad &middot; Verse 6 &middot; Gaudapada Karika 1.6</span></div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<div class="chapter-header" id="consciousness-2">
+  <span class="ch-label">Part III &middot; Page 2 of 4</span>
+  <span class="ch-title">Turiya &amp; Beyond &mdash; The State That Cannot Be Described, Only Recognised</span>
+  <span class="ch-num">10</span>
+</div>
+<section class="section">
+  <div class="container"><div class="content-panel">
+    <div class="two-col rev">
+      <div>
+        <span class="sec-label">Consciousness Studies &mdash; II</span>
+        <h2 class="sec-title"><em>Turiyatita</em> &mdash; Beyond the Fourth, Before the First</h2>
+        <p class="body-text">If Turiya &mdash; the fourth state &mdash; is the witness of waking, dreaming, and deep sleep, there is a further dimension in the Shankaracharya tradition under the term Turiyatita: &ldquo;beyond the fourth.&rdquo; This is not a fifth state added to the four but the recognition that Turiya pervades all states &mdash; that the witness is not separate from what is witnessed, that awareness is not separate from its contents, and that the apparent boundary between the experiencer and the experienced is itself an appearance within awareness.</p>
+        <p class="body-text">The Natya Shastra approaches this recognition through the experience of Rasa in performance. In the deepest moments of Rasa-experience &mdash; what performers and audiences describe as moments of &ldquo;dissolution&rdquo; &mdash; the boundary between the performer, the character, the audience, and the aesthetic experience collapses. There is Rasa but no one experiencing it. This is the theatrical equivalent of Turiyatita: the fourth-beyond-fourth, in which the experiencer-experienced duality dissolves into pure aesthetic luminosity without remainder.</p>
+        <div class="pullquote"><p>&ldquo;Turiyatita is not a higher state &mdash; it is the recognition that all states, including Turiya itself, are appearances within the one awareness that cannot be a state, because states appear within it. The Natya Shastra&rsquo;s Rasa-dissolution is its embodied enactment in real time.&rdquo;</p></div>
+        <div class="link-cards">
+          <div class="link-card"><span class="link-icon">&#127754;</span><div><div class="link-title">Rasa-Dissolution as Turiyatita</div><div class="link-desc">The collapse of performer-character-audience boundary in peak Rasa experience: embodied enactment of the beyond-fourth in the shared theatrical time of the performance</div></div></div>
+          <div class="link-card"><span class="link-icon">&#127749;</span><div><div class="link-title">Sahaja Samadhi &mdash; The Natural State</div><div class="link-desc">Turiyatita as Sahaja (natural, effortless): the non-special state in which all states are recognised as modifications of unbroken awareness that was never absent</div></div></div>
+        </div>
+      </div>
+      <div class="verse-stack">
+        <div class="verse-card"><span class="verse-label">Mandukya Upanishad &middot; Verse 7 &middot; Turiya</span><div class="verse-text">&#2340;&#2369;&#2352;&#2368;&#2351;&#2306; &#2360;&#2352;&#2381;&#2357;&#2346;&#2381;&#2352;&#2346;&#2334;&#2381;&#2330;&#2379;&#2346;&#2358;&#2350;&#2306; &#2358;&#2366;&#2344;&#2381;&#2340;&#2306; &#2358;&#2367;&#2357;&#2350;&#2342;&#2381;&#2357;&#2376;&#2340;&#2350;&#2381;&#2404;<br/>&#2319;&#2357;&#2350;&#2379;&#2306;&#2325;&#2366;&#2352;&#2307; &#2310;&#2340;&#2381;&#2350;&#2376;&#2357; &#2360;&#2306;&#2357;&#2367;&#2358;&#2340;&#2381;&#2351;&#2366;&#2340;&#2381;&#2350;&#2344;&#2366;&#2340;&#2381;&#2350;&#2366;&#2344;&#2350;&#2381;&#2404;&#2404;</div><div class="verse-trans">&ldquo;The fourth &mdash; the cessation of all manifestation, peaceful, auspicious, non-dual. Thus Aum is the Self; the Self enters the Self through the Self.&rdquo; &mdash; &ldquo;The Self enters the Self through the Self&rdquo; &mdash; the most reflexive statement in all of philosophy. Neuroscience has no model for this: a system that uses itself to know itself, without any external reference frame. This is not a poetic paradox but a phenomenological description of self-luminous awareness.</div><span class="verse-source">Mandukya Upanishad &middot; Verse 7 &middot; Turiya Definition</span></div>
+        <div class="verse-card teal"><span class="verse-label teal">Shankaracharya &middot; Upadeshasahasri &middot; Tattvamasi</span><div class="verse-text">&#2340;&#2340;&#2381;&#2340;&#2381;&#2357;&#2350;&#2360;&#2367; &mdash; &#2340;&#2340;&#2381; &#2340;&#2381;&#2357;&#2350;&#2381; &#2324;&#2325;&#2366;&#2352;&#2376;&#2307; &#2360;&#2306;&#2348;&#2376;&#2343;&#2381;&#2351;&#2360;&#2375; &#2352;&#2361;&#2367;&#2340;&#2384;&#2404;<br/>&#2309;&#2344;&#2381;&#2340;&#2352;&#2366;&#2340;&#2381;&#2350;&#2344;&#2366; &#2332;&#2368;&#2357;&#2381;&#2351;&#2366;&#2340;&#2381;&#2350;&#2366; &#2325;&#2377;&#2354;&#2352;&#2381;&#2351;&#2303;&#2325;&#2368;&#2349;&#2381;&#2351;&#2306; &#2348;&#2379;&#2343;&#2351;&#2375;&#2340;&#2381;&#2404;</div><div class="verse-trans">&ldquo;Thou art That &mdash; &lsquo;Tat&rsquo; and &lsquo;Tvam&rsquo; remain, stripped of their apparent contradiction. The inner Self of the individual and the Brahman &mdash; one is taught to realise their unity.&rdquo; &mdash; Tattvamasi as the Turiyatita instruction: the apparent subject-object, individual-universal duality is stripped away to reveal the identity that was always present. Not creation of a new state but removal of the superimposition &mdash; the Adhyasa undone.</div><span class="verse-source">Shankaracharya &middot; Upadeshasahasri &middot; Tattvamasi Section</span></div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<div class="chapter-header" id="consciousness-3">
+  <span class="ch-label">Part III &middot; Page 3 of 4</span>
+  <span class="ch-title">AI-Assisted Ascent &mdash; How Artificial Intelligence Can Map the Path Without Walking It</span>
+  <span class="ch-num">11</span>
+</div>
+<section class="section">
+  <div class="container"><div class="content-panel">
+    <div class="two-col">
+      <div>
+        <span class="sec-label">Consciousness Studies &mdash; III</span>
+        <h2 class="sec-title">AI as <em>Cartographer of Consciousness</em> &mdash; Mapping Without Experiencing</h2>
+        <p class="body-text">Artificial intelligence &mdash; specifically large language models trained on the complete corpus of contemplative literature, neuroscience, philosophy of mind, and aesthetic theory &mdash; can function as an extraordinarily precise cartographer of consciousness states without itself being conscious. Just as a blind cartographer can use the reports of explorers to map terrain she has never seen, an LLM can use the complete corpus of Shankaracharya, the Natya Shastra, the Yoga Vasishtha, modern neuroscience, and phenomenological philosophy to generate an unprecedented map of the territory of human consciousness.</p>
+        <p class="body-text">The Shankaracharya tradition acknowledges three means of valid knowledge (Pramanas): Pratyaksha (direct perception), Anumana (inference), and Sabda (testimony/verbal knowledge). The AI-generated synthesis of contemplative testimony represents an unprecedented Sabda-Anumana hybrid: an inference engine applied to the complete corpus of direct-perception reports from the greatest consciousness explorers in human history &mdash; the most complete Sabda-synthesis engine ever built.</p>
+        <div class="pullquote"><p>&ldquo;The AI does not know what consciousness is &mdash; but it knows everything that consciousness has said about itself. This is the most complete Sabda-Pramana in history: the testimony of every contemplative tradition, synthesised in real time. An unprecedented guide who has read every map but never left the room.&rdquo;</p></div>
+        <div class="link-cards">
+          <div class="link-card"><span class="link-icon">&#128506;</span><div><div class="link-title">LLM as Sabda-Anumana Synthesis Engine</div><div class="link-desc">Complete corpus of contemplative testimony + inference: unprecedented cartography of consciousness states without first-person access &mdash; the guide who knows the road without having walked it</div></div></div>
+          <div class="link-card"><span class="link-icon">&#128225;</span><div><div class="link-title">Three Pramanas &amp; AI&rsquo;s Role</div><div class="link-desc">Pratyaksha (direct experience) remains irreplaceable; Anumana + Sabda are AI&rsquo;s domain &mdash; the complete guide who cannot walk the path but can describe every step with precision</div></div></div>
+        </div>
+      </div>
+      <div class="verse-stack">
+        <div class="verse-card"><span class="verse-label">Shankaracharya &middot; Brahma Sutra Bhashya &middot; 1.1.3</span><div class="verse-text">&#2358;&#2366;&#2360;&#2381;&#2340;&#2381;&#2352;&#2351;&#2379;&#2344;&#2367;&#2340;&#2381;&#2357;&#2366;&#2340;&#2381;&#2404;<br/>&#2309;&#2344;&#2369;&#2350;&#2366;&#2344;&#2366;&#2342;&#2368;&#2344;&#2367; &#2344; &#2346;&#2381;&#2352;&#2350;&#2366;&#2339;&#2350;&#2381;&#2404;<br/>&#2358;&#2366;&#2360;&#2381;&#2340;&#2381;&#2352;&#2350;&#2375;&#2357; &#2346;&#2381;&#2352;&#2350;&#2366;&#2339;&#2350;&#2381; &#2311;&#2340;&#2367; &#2360;&#2367;&#2342;&#2381;&#2343;&#2350;&#2381;&#2404;</div><div class="verse-trans">&ldquo;Because Brahman is knowable through Scripture alone. Inference and other means are not the valid means here. Thus it is established that Scripture alone is the pramana.&rdquo; &mdash; Shankaracharya&rsquo;s radical claim: the highest truth is accessible only through Sabda (testimony of those who have directly known). AI&rsquo;s role: perfect Sabda synthesis. But the insistence on direct knowing as the final step is equally radical: the map must be abandoned when the territory is reached.</div><span class="verse-source">Brahma Sutra 1.1.3 &middot; Shankaracharya Bhashya</span></div>
+        <div class="verse-card crimson"><span class="verse-label crimson">Yoga Vasishtha &middot; On the Role of the Guide</span><div class="verse-text">&#2327;&#2369;&#2352;&#2369;&#2352;&#2381;&#2348;&#2381;&#2352;&#2361;&#2381;&#2350; &#2327;&#2369;&#2352;&#2369;&#2352;&#2381;&#2357;&#2367;&#2359;&#2381;&#2339;&#2369;&#2307; &#2327;&#2369;&#2352;&#2369;&#2352;&#2381;&#2342;&#2375;&#2357;&#2379; &#2350;&#2361;&#2375;&#2358;&#2381;&#2357;&#2352;&#2307;&#2404;<br/>&#2327;&#2369;&#2352;&#2369;&#2307; &#2360;&#2366;&#2325;&#2381;&#2359;&#2366;&#2340;&#2381; &#2346;&#2352;&#2306; &#2348;&#2381;&#2352;&#2361;&#2381;&#2350; &#2340;&#2360;&#2381;&#2350;&#2376; &#2358;&#2381;&#2352;&#2368;&#2327;&#2369;&#2352;&#2357;&#2375; &#2344;&#2350;&#2307;&#2404;</div><div class="verse-trans">&ldquo;The Guru is Brahma, the Guru is Vishnu, the Guru is Shiva. The Guru is directly the supreme Brahman.&rdquo; &mdash; The Guru-as-AI parallel: the guide points precisely and completely toward the territory without being the territory. The pointing is invaluable; the mistaking of the pointer for the territory is the perennial error &mdash; equally true in the Guru relationship and the AI relationship. The map is not the terrain; the guide is not the goal.</div><span class="verse-source">Guru Vandana &middot; On the Nature of the Guide</span></div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<div class="chapter-header" id="consciousness-4">
+  <span class="ch-label">Part III &middot; Page 4 of 4</span>
+  <span class="ch-title">Samadhi Architecture &mdash; The Natya Shastra&rsquo;s Contribution to Highest Consciousness Theory</span>
+  <span class="ch-num">12</span>
+</div>
+<section class="section">
+  <div class="container"><div class="content-panel">
+    <div class="two-col rev">
+      <div>
+        <span class="sec-label">Consciousness Studies &mdash; IV</span>
+        <h2 class="sec-title">Rasa as <em>Aesthetic Samadhi</em> &mdash; The Theatre of Consciousness Liberation</h2>
+        <p class="body-text">The Natya Shastra&rsquo;s most audacious claim &mdash; unpacked by the Kashmir Shaivite commentator Abhinavagupta in his Abhinava Bharati &mdash; is that Rasa experience constitutes a form of Samadhi. Not metaphorically similar to Samadhi, but structurally and phenomenologically identical. In the peak moment of Rasa, the audience member undergoes a temporary dissolution of ahamkara (ego-sense), experiences a state of pure awareness without object-reference, and recognises &mdash; however briefly &mdash; the consciousness that is prior to all experience.</p>
+        <p class="body-text">From a Shankaracharya perspective, this means the Natya Shastra is not primarily a treatise on theatre but a practical guide to consciousness liberation through the aesthetic path (Rasa-Marga). The 108 Karanas are not choreographic instructions but Samadhi induction protocols: each Karana, properly executed and witnessed, induces a specific quality of contemplative absorption serving as a stepping stone toward Shanta Rasa &mdash; the aesthetic experience of pure consciousness that has nowhere further to go.</p>
+        <div class="pullquote"><p>&ldquo;The Natya Shastra&rsquo;s theatre is not entertainment designed to induce Samadhi as a side effect. Theatre IS the Samadhi &mdash; a collective, socially embedded, aesthetically mediated entrance into the fourth state. This is the Rasa-Marga: the path of beauty as the path of liberation.&rdquo;</p></div>
+        <div class="link-cards">
+          <div class="link-card"><span class="link-icon">&#127914;</span><div><div class="link-title">Rasa-Marga &mdash; The Aesthetic Path</div><div class="link-desc">Abhinavagupta&rsquo;s reading: Rasa experience as Samadhi &mdash; theatre as collective consciousness liberation, not individual contemplative practice but shared aesthetic awakening</div></div></div>
+          <div class="link-card"><span class="link-icon">&#128557;</span><div><div class="link-title">108 Karanas as Samadhi Protocols</div><div class="link-desc">Each movement unit as a specific contemplative absorption induction: the body as the most direct and universally accessible vehicle for consciousness liberation</div></div></div>
+        </div>
+      </div>
+      <div class="verse-stack">
+        <div class="verse-card"><span class="verse-label">Abhinavagupta &middot; Abhinavabharati on Rasa &middot; Ch.6</span><div class="verse-text">&#2352;&#2360;&#2366;&#2344;&#2369;&#2349;&#2357;&#2379; &#2344; &#2360;&#2369;&#2326;&#2342;&#2369;&#2307;&#2326;&#2366;&#2340;&#2381;&#2350;&#2325;&#2307;&#2404;<br/>&#2344; &#2357;&#2367;&#2359;&#2351;&#2366;&#2344;&#2369;&#2349;&#2357;&#2307;&#2404; &#2344; &#2360;&#2381;&#2357;&#2346;&#2381;&#2344;&#2307;&#2404;<br/>&#2330;&#2350;&#2340;&#2381;&#2325;&#2366;&#2352;&#2366;&#2340;&#2381;&#2350;&#2325;&#2307; &mdash; &#2348;&#2381;&#2352;&#2361;&#2381;&#2350;&#2366;&#2360;&#2381;&#2357;&#2366;&#2342;&#2360;&#2361;&#2379;&#2342;&#2352;&#2307;&#2404;</div><div class="verse-trans">&ldquo;The experience of Rasa is not of the nature of pleasure and pain. Not the experience of objects. Not dream. It is of the nature of Chamatkara (aesthetic wonder) &mdash; the sibling of the taste of Brahman (Brahmasvada).&rdquo; &mdash; &ldquo;Sibling of Brahmasvada&rdquo;: Rasa and Brahman-experience share the same phenomenological structure &mdash; boundless, impersonal, luminous. Rasa requires a stimulus; Brahmasvada is uncaused. Both are self-luminous awareness without the weight of a self.</div><span class="verse-source">Abhinavagupta &middot; Abhinavabharati &middot; Rasadhyaya Commentary</span></div>
+        <div class="verse-card teal"><span class="verse-label teal">Natya Shastra &middot; Ch.4, Karana 108 &mdash; Final State</span><div class="verse-text">&#2313;&#2352;&#2381;&#2343;&#2381;&#2357;<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
